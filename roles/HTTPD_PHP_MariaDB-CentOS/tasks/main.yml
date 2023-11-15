@@ -1,0 +1,31 @@
+  - name: install httpd and php (CentOS)
+    yum:
+      name:
+        - httpd
+        - php
+      state: present
+
+  - name: install mariadb package (CentOS)
+    yum:
+      name: mariadb-server
+      state: present
+
+  - name: start httpd (CentOS)
+    service:
+      name: httpd
+      state: started
+
+  - name: start MariaDB (CentOS)
+    service:
+      name: mariadb
+      state: started
+
+  - name: enable httpd (CentOS)
+    service:
+      name: httpd
+      enabled: true
+
+  - name: enable MariaDB (CentOS)
+    service:
+      name: mariadb
+      enabled: true

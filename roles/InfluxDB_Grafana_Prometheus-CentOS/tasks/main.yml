@@ -1,0 +1,73 @@
+  - name: Download the Grafana in CentOS
+    get_url:
+      url: https://dl.grafana.com/enterprise/release/grafana-enterprise-9.2.2-1.x86_64.rpm
+      dest: /tmp/grafana-enterprise-9.2.2-1.x86_64.rpm
+    when: ansible_distribution == "CentOS"
+
+  - name: Install Grafana in CentOS
+    yum:
+      name: /tmp/grafana-enterprise-9.2.2-1.x86_64.rpm
+      state: present
+    when: ansible_distribution == "CentOS"
+
+  - name: Start Grafana
+    service:
+      name: grafana-server
+      state: restarted
+
+  - name: prothemetus download directory (CentOS)
+    file:
+      path: ~/prometheus
+      state: directory
+
+  - name: Downloading and extracting Prometheus (CentOS)
+    unarchive:
+      src: https://github.com/prometheus/prometheus/releases/download/v2.8.1/prometheus-2.8.1.linux-amd64.tar.gz
+      dest: ~/prometheus
+      remote_src: yes
+      mode: 0777
+      owner: root
+      group: root
+
+
+  - name: Stop the Prometheus service (CentOS)
+    service:
+      name: prometheus
+      state: stopped
+    async: 300
+    poll: 0
+    ignore_errors: yes
+
+  - name: Wait for Prometheus service to stop
+    wait_for:
+      path: /var/run/prometheus.pid
+      state: absent
+    when: ansible_os_family == 'RedHat'
+
+  - name: Adding the Prometheus executables to a PATH
+    tags: executables
+    shell: |
+      cd ~/prometheus/prometheus*
+      cp -r . /usr/local/bin/prometheus
+
+  - name: Copying the Prometheus Configuration (CentOS)
+    copy:
+      src: prometheus.service
+      dest: /etc/systemd/system/prometheus.service
+      owner: root
+      group: root
+      mode: 777
+
+#  - name: Start and enable Grafana service (CentOS)
+#    service:
+#      name: grafana-server
+#      state: started
+#      enabled: yes
+
+  - name: enable / start Prometheus (CentOS)
+    service:
+      name: prometheus
+      state: started
+      enabled: yes
+
+

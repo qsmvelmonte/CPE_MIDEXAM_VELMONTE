@@ -1,0 +1,65 @@
+  - name: install required packages (CentOS)
+    yum:
+      name: epel-release
+      state: present
+
+  - name: Add Elasticsearch YUM repository (CentOS)
+    yum_repository:
+      name: elasticsearch
+      description: Elasticsearch repository
+      baseurl: https://artifacts.elastic.co/packages/7.x/yum
+      gpgcheck: yes
+      gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      enabled: yes
+    when: not (ansible_facts['yum_repos']|default([]) | select('match', 'elasticsearch') | list)
+
+  - name: Install Elasticsearch (Centos)
+    package:
+      name: elasticsearch
+      state: present
+
+  - name: updating the configuration file to allow outside access
+    lineinfile:
+      destfile: /etc/elasticsearch/elasticsearch.yml
+      regexp: 'network.host:'
+      line: 'network.host: 0.0.0.0'
+
+  - name: updating port in configuration file
+    lineinfile:
+      destfile: /etc/elasticsearch/elasticsearch.yml
+      regexp: 'http.port:'
+      line: 'http.port: 9200'
+
+  - name: updating the config file to allow outside access
+    lineinfile:
+      destfile: /etc/elasticsearch/elasticsearch.yml
+      regexp: 'cluster.initial_master_nodes:'
+      line: 'cluster.initial_master_nodes: ["{{ ansible_default_ipv4.address }}"]'
+
+  - name: Install Kibana (Centos)
+    yum:
+      name: kibana
+      state: present
+
+  - name: Install Logstash (Centos)
+    yum:
+      name: logstash
+      state: present
+
+  - name: Enable / Start Logstash (Centos)
+    systemd:
+      name: logstash
+      state: started
+      enabled: true
+
+  - name: Enable / Start Elasticsearch (Centos)
+    service:
+      name: elasticsearch
+      state: started
+      enabled: true
+
+  - name: Enable / Start Kibana (Centos)
+    service:
+      name: kibana
+      state: started
+      enabled: true

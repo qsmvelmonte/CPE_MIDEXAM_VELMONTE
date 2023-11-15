@@ -1,0 +1,31 @@
+  - name: install httpd and php (Ubuntu)
+    apt:
+      name:
+        - apache2
+        - libapache2-mod-php
+      state: present
+
+  - name: install mariadb package (Ubuntu)
+    apt:
+      name: mariadb-server
+      state: present
+
+  - name: start httpd (Ubuntu)
+    service:
+      name: apache2
+      state: started
+
+  - name: start MariaDB (Ubuntu)
+    service:
+      name: mariadb
+      state: started
+
+  - name: enable httpd (Ubuntu)
+    service:
+      name: apache2
+      enabled: true
+
+  - name: enable MariaDB (Ubuntu)
+    service:
+      name: mariadb
+      enabled: true

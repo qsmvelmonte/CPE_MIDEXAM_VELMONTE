@@ -1,0 +1,68 @@
+  - name: install InfluxDB package (Ubuntu)
+    apt:
+      name: influxdb
+      state: present
+
+  - name: Install required packages for Grafana (Ubuntu)
+    apt:
+      name: apt-transport-https
+      state: present
+
+  - name: Install the Grafana GPG key (Ubuntu)
+    apt_key:
+      url: https://packages.grafana.com/gpg.key
+    when: not (ansible_facts['apt_keys']|default([]) | select('match', 'grafana') | list)
+
+  - name: Add Grafana APT repository (Ubuntu)
+    apt_repository:
+      repo: deb https://packages.grafana.com/oss/deb stable main
+      state: present
+    when: not (ansible_facts['apt_sources']|default([]) | select('match', 'grafana') | list)
+
+  - name: Install Grafana (Ubuntu)
+    apt:
+      name: grafana
+      state: present
+
+  - name: Update Grafana configuration to allow network host
+    lineinfile:
+      dest: /etc/grafana/grafana.ini
+      regexp: '^;http_addr ='
+      line: 'http_addr = 0.0.0.0'
+
+  - name: Update Grafana configuration to change the default port to 3000
+    lineinfile:
+      dest: /etc/grafana/grafana.ini
+      regexp: '^;http_port ='
+      line: 'http_port = 3000'
+
+  - name: install necessary packages for Prometheus (Ubuntu)
+    apt:
+      name: prometheus
+      state: present
+
+  - name: Copying the Prometheus Configuration (Ubuntu)
+    copy:
+      src: prometheus.service
+      dest: /etc/systemd/system/prometheus.service
+      owner: root
+      group: root
+      mode: 777
+
+  - name: enable / start InfluxDB (Ubuntu)
+    service:
+      name: influxdb
+      state: started
+      enabled: true
+
+  - name: Start and enable Grafana service (Ubuntu)
+    service:
+      name: grafana-server
+      state: started
+      enabled: true
+
+  - name: enable / start prometheus (Ubuntu)
+    service:
+      name: prometheus
+      state: started
+      enabled: yes

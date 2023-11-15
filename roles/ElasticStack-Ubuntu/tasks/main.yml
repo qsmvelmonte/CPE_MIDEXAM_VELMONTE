@@ -1,0 +1,66 @@
+  - name: install required packages (Ubuntu)
+    apt:
+      name: apt-transport-https
+      state: present
+
+  - name: Install the Elasticsearch GPG key (Ubuntu)
+    apt_key:
+      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    when: not (ansible_facts['apt_keys']|default([]) | select('match', 'elasticsearch') | list)
+
+  - name: Add Elasticsearch APT repository (Ubuntu)
+    apt_repository:
+      repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+      state: present
+    when: not (ansible_facts['file_exists']|default({}))['/etc/apt/sources.list.d/elastic-7.x.list']|default(False)
+
+  - name: Install Elasticsearch (Ubuntu)
+    apt:
+      name: elasticsearch
+      state: present
+
+  - name: updating the configuration file to allow outside access
+    lineinfile:
+      destfile: /etc/elasticsearch/elasticsearch.yml
+      regexp: 'network.host:'
+      line: 'network.host: 0.0.0.0'
+
+  - name: updating port in configuration file
+    lineinfile:
+      destfile: /etc/elasticsearch/elasticsearch.yml
+      regexp: 'http.port:'
+      line: 'http.port: 9200'
+
+  - name: updating the config file to allow outside access
+    lineinfile:
+      destfile: /etc/elasticsearch/elasticsearch.yml
+      regexp: 'cluster.initial_master_nodes:'
+      line: 'cluster.initial_master_nodes: ["{{ ansible_default_ipv4.address }}"]'
+
+  - name: Install Kibana (Ubuntu)
+    apt:
+      name: kibana
+      state: present
+
+  - name: Install Logstash (Ubuntu)
+    apt:
+      name: logstash
+      state: present
+
+  - name: Enable / Start Elasticsearch (Ubuntu)
+    service:
+      name: elasticsearch
+      state: started
+      enabled: true
+
+  - name: Enable / Start Kibana (Ubuntu)
+    service:
+      name: kibana
+      state: started
+      enabled: true
+
+  - name: Enable / Start Logstash (Ubuntu)
+    service:
+      name: logstash
+      state: started
+      enabled: true
